@@ -33,28 +33,14 @@ class widget_bean_500px extends WP_Widget {
 
 
     /** 
-     * Widget style is loaded based on the currently activated theme
-     * If an associated style exists under /themes, it is loaded
-     * /themes/_default/500px.css is loaded otherwise
-     * 
+     * Widget style is loaded
      * hooked to wp_head
      *
      * @return void
      */
     public function load_widget_style() {
-        $current_theme = wp_get_theme();
-
-        $theme_css_path = DIRNAME(__FILE__) . '/themes/' . $current_theme . '/500px.css';
-        $theme_css_url = plugin_dir_url(__FILE__) . 'themes/' . $current_theme . '/500px.css';
-        $default_css_url = plugin_dir_url(__FILE__) . 'themes/_default/500px.css';
-
-        // fix spaces that may exist in the theme name
-        $theme_css_url = str_replace(' ', '%20', $theme_css_url);
-
-        if (file_exists($theme_css_path))
-            wp_enqueue_style( 'bean-500px-style', $theme_css_url, false, '1.0', 'all' );
-        else
-            wp_enqueue_style( 'bean-500px-style', $default_css_url, false, '1.0', 'all' );
+        $default_css_url = plugin_dir_url(__FILE__) . '500px.css';
+        wp_enqueue_style( 'bean-500px-style', $default_css_url, false, '1.0', 'all' );
     }
 
     /**

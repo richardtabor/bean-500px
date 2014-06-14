@@ -1,11 +1,11 @@
 <?php 
 /*
 Plugin Name: Bean 500px
-Plugin URI: http://themebeans.com/plugin/bean-500px-plugin/?ref=plugin_bean_500px
-Description: Shows the photos from 500px that you or your friends have uploaded, or the ones that you've favorited - right in any of the widget areas.
+Plugin URI: http://themebeans.com/plugin/bean-500px
+Description: Display photos from 500px that you or your friends have uploaded. Add the Bean 500px widget to a widget area and plug in your username.
 Version: 1.0
-Author: Kamil Waheed / ThemeBeans
-Author URI: http://www.themebeans.com/?ref=plugin_bean_500px
+Author: ThemeBeans
+Author URI: http://themebeans.com
 */
 
 
