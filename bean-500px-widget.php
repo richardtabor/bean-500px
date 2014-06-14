@@ -24,7 +24,7 @@ class widget_bean_500px extends WP_Widget {
         parent::__construct(
             'bean_500px', // BASE ID
             'Bean 500px', // NAME
-            array( 'description' => __( 'Displays photos from 500px.', 'bean' ), )
+            array( 'description' => __( 'Add a 500px feed widget.', 'bean' ), )
         );
 
         if ( is_active_widget(false, false, $this->id_base) )
@@ -192,7 +192,7 @@ class widget_bean_500px extends WP_Widget {
                            ),
             'username'     => array(
                                 'title'     => __("Username", "bean"),
-                                'default'   => "",
+                                'default'   => "feliciasimion",
                                 'type'      => "full-text"
                            ),
             'show'         => array(
