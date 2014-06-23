@@ -361,7 +361,7 @@ class widget_bean_500px extends WP_Widget {
                         "username"      => $username,
                         "feature"       => $feature,
                         "image_size"    => 2,
-                        "rpp"           => 8
+                        "rpp"           => 10
                     );
 
         $endpoint_URI .= '?' . http_build_query( $url_vars );
