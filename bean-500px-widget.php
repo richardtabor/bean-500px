@@ -58,7 +58,7 @@ class widget_bean_500px extends WP_Widget {
         $desc = $instance['desc'];
         if($desc != '') : ?><p><?php echo $desc; ?></p><?php endif;
 
-        $photos = $this->get500px_photos( $instance['username'], $instance['show'], $instance['cachetime'] );
+        $photos = $this->get500px_photos( $instance['username'], $instance['show'], $instance['show_count'], $instance['cachetime'] );
 
         if ( !$photos ) {
             $error = new stdClass();
@@ -156,6 +156,23 @@ class widget_bean_500px extends WP_Widget {
 
                     break;
 
+                case 'number':
+                    $instance[$key] = strip_tags( $new_instance[$key] );
+                    $args = isset( $value['args'] ) ? $value['args'] : array();
+                    $default = $value['default'];
+                    
+                    if ( is_numeric( $new_instance[$key] ) ) {
+                        if ( isset( $args['max'] ) && $new_instance[$key] > $args['max'] ) {
+                            $instance[$key] = $args['max'];
+                        } elseif ( isset( $args['min'] ) && $new_instance[$key] < $args['min'] ) {
+                            $instance[$key] = $args['min'];
+                        }
+                    } else {
+                        $instance[$key] = $default;
+                    }
+
+                    break;
+
                 default:
                     $instance[$key] = strip_tags( $new_instance[$key] );
 
@@ -178,7 +195,8 @@ class widget_bean_500px extends WP_Widget {
             'title'        => array(
                                 'title'     => __("Title", "bean"),
                                 'default'   => __("Bean 500px Plugin", "bean"),
-                                'type'      => "full-text"
+                                'type'      => "text",
+                                'display'   => "full-text"
                            ),
             'desc'         => array(
                                 'title'     => "",
@@ -193,7 +211,8 @@ class widget_bean_500px extends WP_Widget {
             'username'     => array(
                                 'title'     => __("Username", "bean"),
                                 'default'   => "feliciasimion",
-                                'type'      => "full-text"
+                                'type'      => "text",
+                                'display'   => "full-text"
                            ),
             'show'         => array(
                                 'title'     => __("Show", "bean"),
@@ -207,12 +226,25 @@ class widget_bean_500px extends WP_Widget {
                                                                    )
                                                )
                            ),
+            'show_count'   => array(
+                                'title'     => __("Show Count", "bean"),
+                                'default'   => "6",
+                                'type'      => "number",
+                                'display'   => "full-text",
+                                'args'      => array(
+                                                    'max'       => 100,
+                                                    'min'       => 0
+                                               )
+                           ),
             'cachetime'    => array(
                                 'title'     => __("Cache Time", "bean"),
                                 'default'   => "5",
-                                'type'      => "small-text",
+                                'type'      => "number",
+                                'display'   => "small-text",
                                 'args'      => array(
-                                                    'suffix'    => 'hours'
+                                                    'suffix'    => 'hours',
+                                                    'max'       => INF,
+                                                    'min'       => 0
                                                )
                            ),
         );
@@ -239,7 +271,7 @@ class widget_bean_500px extends WP_Widget {
         foreach($settings as $key => $value) {
             $this->generateFormField( $value['title'], 
                                       $key,
-                                      $value['type'], 
+                                      isset( $value['display'] ) ? $value['display'] : $value['type'], 
                                       $instance[ $key ], 
                                       isset( $value['suffix'] ) ? $value['suffix'] : '',
                                       isset( $value['args'] ) ? $value['args'] : ''
@@ -253,14 +285,14 @@ class widget_bean_500px extends WP_Widget {
      *
      * @param string $title The text of the <label> for the field
      * @param string $name The "name" attribute value to use in the markup
-     * @param string $type The type of the form field to render. Supported values are: textarea, select, small-text, and full-text
+     * @param string $display The display of the form field to render. Supported values are: textarea, select, small-text, and full-text
      * @param string $value The value to populate in the form field
      * @param string $suffix Some extra markup(or plain text) to render right after the field
      * @param array $args Extra arguments depending on the $type of field
      *
      * @return void
      */
-    private function generateFormField( $title, $name, $type, $value = "", $suffix = "", $args = array() ) {
+    private function generateFormField( $title, $name, $display, $value = "", $suffix = "", $args = array() ) {
         $top = isset( $args['top'] ) ? $args['top'] : NULL;
         $style = $top ? "style='margin-top: $top;'" : "";
 
@@ -273,7 +305,7 @@ class widget_bean_500px extends WP_Widget {
             echo "<label for='$id'>$title&nbsp;</label>";
         }
 
-        switch( $type ) {
+        switch( $display ) {
             case 'textarea':
                 $rows = isset($args['rows']) ? $args['rows'] : '';
                 $cols = isset($args['cols']) ? $args['cols'] : '';
@@ -321,18 +353,19 @@ class widget_bean_500px extends WP_Widget {
      *
      * @param string $username The 'username' value to pass to 500px API
      * @param string $feature The 'feature' value to pass to 500px API
-     * @param int $cache_duration Number of seconds the cache lasts
+     * @param string $show_count The number of results to return
+     * @param int $cache_duration (OPTIONAL) Number of seconds the cache lasts
      *
      * @return object|false A JSON object as received from the 500px API; false otherwise
      *
      */
-    private function get500px_photos( $username, $feature, $cache_duration = 0 ) {
+    private function get500px_photos( $username, $feature, $show_count, $cache_duration = 0 ) {
         $cache = $this->get_raw_response_cache($cache_duration);
 
         if ($cache) {
             $raw_response = $cache;
         } else {
-            $raw_response = $this->get500px_raw_response( $username, $feature );
+            $raw_response = $this->get500px_raw_response( $username, $feature, $show_count );
 
             $this->set_raw_response_cache( $raw_response );
         }
@@ -350,18 +383,19 @@ class widget_bean_500px extends WP_Widget {
      *
      * @param string $username The 'username' value to pass to 500px API
      * @param string $feature The 'feature' value to pass to 500px API
+     * @param string $show_count The number of results to return
      *
      * @return string The raw response string from the 500px API
      */
 
-    private function get500px_raw_response( $username, $feature ) {
+    private function get500px_raw_response( $username, $feature, $show_count ) {
         $endpoint_URI = $this->API_URI_BASE . $this->API_PHOTOS_ENDPOINT;
         $url_vars = array(
                         "consumer_key"  => $this->API_CONSUMER_KEY,
                         "username"      => $username,
                         "feature"       => $feature,
                         "image_size"    => 2,
-                        "rpp"           => 10
+                        "rpp"           => is_numeric( $show_count ) ? $show_count : 6
                     );
 
         $endpoint_URI .= '?' . http_build_query( $url_vars );
