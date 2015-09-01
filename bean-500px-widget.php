@@ -1,36 +1,31 @@
-<?php 
-/*--------------------------------------------------------------------
+<?php
+/**
+ * Widget Name: Bean 500px
+ */
 
-    Widget Name: Bean 500px Widget
-    Widget URI: http://www.themebeans.com/?ref=plugin_bean_500px
-    Description:  A widget that displays your most recent 500px photos, your 500px feed (photos of friends your following) or your favorited posts on 500px
-    Author: Kamil Waheed / ThemeBeans
-    Author URI: http://www.themebeans.com/?ref=plugin_bean_500px
-    Version: 1.0
+// Register widget
+add_action('widgets_init', create_function('', 'return register_widget("widget_bean_500px");'));
 
-/*--------------------------------------------------------------------*/
+class widget_bean_500px extends WP_Widget 
+{
+    // Constructor
+    function __construct() {
+        parent::__construct(
+            'bean_500px', // Base ID
+            __( 'Bean 500px', 'bean' ), // Name
+            array( 'description' => __( 'Add a 500px feed widget.', 'bean' ), ) // Args
+        );
 
-
-// WIDGET CLASS
-class widget_bean_500px extends WP_Widget {
+        if ( is_active_widget(false, false, $this->id_base) ) {
+            add_action( 'wp_head', array(&$this, 'load_widget_style') );
+         } 
+    }
 
     private $API_CONSUMER_KEY = "XDtqmkDVnElsZvENizrfyWmJ8W2FSVJBEkJrPjiD";
     private $API_URI_BASE = "https://api.500px.com/v1/";
     private $API_PHOTOS_ENDPOINT = "photos";
 
     private $db_option_key = "bean500px_settings";
-
-    public function __construct() {
-        parent::__construct(
-            'bean_500px', // BASE ID
-            'Bean 500px', // NAME
-            array( 'description' => __( 'Add a 500px feed widget.', 'bean' ), )
-        );
-
-        if ( is_active_widget(false, false, $this->id_base) )
-            add_action( 'wp_head', array(&$this, 'load_widget_style') );
-    }
-
 
     /** 
      * Widget style is loaded
@@ -482,12 +477,3 @@ class widget_bean_500px extends WP_Widget {
         update_option( $this->db_option_key, $plugin_settings );
     }
 }
-
-
-// REGISTER WIDGET
-function register_bean500px_widget(){
-    register_widget('widget_bean_500px');
-}
-add_action('init', 'register_bean500px_widget', 1);
-
-?>
